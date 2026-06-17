@@ -93,6 +93,9 @@ sub test_against_schema {
     $agg->metadata->report_id($report_id);
 
     my $xml = $agg->as_xml();
+    # XML::Validator::Schema has no namespace support (elementFormDefault must
+    # be 'unqualified'), so strip the RFC 9990 default namespace before
+    # validating against the local-name-based schema.
     $xml =~ s/\s+xmlns="[^"]*"//g;
     lives_ok( sub{
         my $validator = XML::Validator::Schema->new(file => 'share/rua-schema.xsd');
