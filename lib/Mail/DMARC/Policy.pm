@@ -129,6 +129,13 @@ sub t {
     return $_[0]->{t} = lc $_[1];
 }
 
+sub discovery_method {
+    return $_[0]->{discovery_method} if 1 == scalar @_;
+    croak "invalid discovery_method ($_[1])"
+        if 0 == grep { /^\Q$_[1]\E$/i } qw/ treewalk psl /;
+    return $_[0]->{discovery_method} = lc $_[1];
+}
+
 sub adkim {
     return $_[0]->{adkim} if 1 == scalar @_;
     croak "invalid adkim" if 0 == grep {/^\Q$_[1]\E$/ix} qw/ r s /;
