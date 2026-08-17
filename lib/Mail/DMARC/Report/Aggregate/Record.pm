@@ -1,7 +1,8 @@
 package Mail::DMARC::Report::Aggregate::Record;
-our $VERSION = '1.20260612';
+our $VERSION = '2.20260724';
 use strict;
 use warnings;
+use feature 'signatures';
 
 use Carp;
 
@@ -10,12 +11,11 @@ require Mail::DMARC::Report::Aggregate::Record::Identifiers;
 require Mail::DMARC::Report::Aggregate::Record::Auth_Results;
 require Mail::DMARC::Report::Aggregate::Record::Row;
 
-sub new {
-    my ( $class, @args ) = @_;
+sub new( $class, @args ) {
     croak "invalid arguments" if @args % 2;
 
     my $self = bless {}, $class;
-    return $self if 0 == scalar @args;
+    return $self if !@args;
 
     my %args = @args;
     foreach my $key ( keys %args ) {
@@ -25,49 +25,45 @@ sub new {
     return $self;
 }
 
-sub identifiers {
-    my ($self, @args) = @_;
+sub identifiers( $self, @args ) {
 
-    if ( !scalar @args ) {
+    if ( !@args ) {
         return $self->{identifiers} if $self->{identifiers};
     }
 
-    if ('HASH' eq ref $args[0]) {
+    if ( 'HASH' eq ref $args[0] ) {
         @args = %{ $args[0] };
     }
 
-    return $self->{identifiers} =
-        Mail::DMARC::Report::Aggregate::Record::Identifiers->new(@args);
+    return $self->{identifiers}
+        = Mail::DMARC::Report::Aggregate::Record::Identifiers->new(@args);
 }
 
-sub auth_results {
-    my ($self, @args) = @_;
+sub auth_results( $self, @args ) {
 
-    if ( !scalar @args ) {
+    if ( !@args ) {
         return $self->{auth_results} if $self->{auth_results};
     }
 
-    if ( 1 == scalar @args && 'HASH' eq ref $args[0] ) {
+    if ( @args == 1 && 'HASH' eq ref $args[0] ) {
         @args = %{ $args[0] };
     }
 
-    return $self->{auth_results} =
-        Mail::DMARC::Report::Aggregate::Record::Auth_Results->new(@args);
+    return $self->{auth_results}
+        = Mail::DMARC::Report::Aggregate::Record::Auth_Results->new(@args);
 }
 
-sub row {
-    my ($self, @args) = @_;
+sub row( $self, @args ) {
 
-    if ( 0 == scalar @args ) {
+    if ( !@args ) {
         return $self->{row} if $self->{row};
     }
 
-    if ( 1 == scalar @args && 'HASH' eq ref $args[0] ) {
+    if ( @args == 1 && 'HASH' eq ref $args[0] ) {
         @args = %{ $args[0] };
     }
 
-    return $self->{row} =
-        Mail::DMARC::Report::Aggregate::Record::Row->new(@args);
+    return $self->{row} = Mail::DMARC::Report::Aggregate::Record::Row->new(@args);
 }
 
 1;
@@ -82,7 +78,7 @@ Mail::DMARC::Report::Aggregate::Record - record section of aggregate report
 
 =head1 VERSION
 
-version 1.20260612
+version 2.20260724
 
 =head1 DESCRIPTION
 

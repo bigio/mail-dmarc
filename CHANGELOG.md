@@ -1,5 +1,23 @@
 ### Unreleased
 
+### 2.20260724
+
+- add <prefix>/etc/mail to search path
+- warn when mail-dmarc.ini not found
+- chore: bump minimum supported Perl to 5.40.2
+
+### 2.20260621
+
+- doc(README): updated RFCs and fixed CPAN links #305
+- chore: bump minimum supported Perl to 5.34.3 #303
+- refactor: use perl 5.20+ subroutine signatures
+- refactor: replace scalar array count checks with modern idioms
+
+### 1.20260621
+
+- feat: implement RFC 9990, aggrement reporting by @bigio #301
+- fix: SQL replace_into bug
+
 ### 1.20260612
 
 - feat: implement RFC 9989 DMARC, by @bigio in #297

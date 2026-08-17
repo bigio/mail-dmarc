@@ -1,9 +1,15 @@
 use strict;
 use warnings;
+use feature 'try';
+no warnings 'experimental::try';  ## no critic (ProhibitNoWarnings)
 
+use Cwd;
 use Data::Dumper;
+use File::Path qw(make_path);
+use File::Temp qw(tempdir);
 use Net::DNS::Resolver::Mock;
 use Test::More;
+use Test::Exception;
 
 use Test::File::ShareDir
   -share => { -dist => { 'Mail-DMARC' => 'share' } };
@@ -19,15 +25,11 @@ isa_ok( $base->get_resolver(), 'Net::DNS::Resolver' );
 
 # invalid config file
 $base = $mod->new( config_file => 'no such config' );
-eval { $base->config };
-chomp $@;
-ok( $@, "invalid config file" );
+dies_ok { $base->config } "invalid config file";
 
 # alternate config file
 $base = $mod->new();
-eval { $base->config('t/mail-dmarc.ini'); };
-chomp $@;
-ok( !$@, "alternate config file" );
+lives_ok { $base->config('t/mail-dmarc.ini') } "alternate config file";
 
 my $resolver = new Net::DNS::Resolver::Mock();
 $base->set_resolver($resolver);
@@ -39,6 +41,8 @@ __is_valid_ip();
 __is_valid_domain();
 __epoch_to_iso();
 __get_prefix();
+__get_config_etc_mail();
+__get_config_fallback_warns();
 __get_sharefile();
 __psl_cached();
 __psl_cached_reload();
@@ -169,13 +173,46 @@ sub __get_prefix {
     );
 }
 
+sub __get_config_etc_mail {
+    # mail daemons (and FreeBSD ports) install to <prefix>/etc/mail/, which
+    # get_config must search in addition to <prefix>/etc/ (github #296)
+    my $cwd = getcwd();
+    my $dir = tempdir( CLEANUP => 1 );
+    make_path("$dir/etc/mail");
+    my $dsn = 'dbi:SQLite:dbname=/var/db/dmarc/reports.sqlite';
+    open my $fh, '>', "$dir/etc/mail/mail-dmarc.ini" or die $!;
+    print {$fh} "[report_store]\ndsn = $dsn\n";
+    close $fh;
+
+    chdir $dir or die $!;
+    my $config = $mod->new->get_config('mail-dmarc.ini');
+    chdir $cwd or die $!;
+
+    is( $config->{report_store}{dsn},
+        $dsn, "get_config finds mail-dmarc.ini in etc/mail/" );
+}
+
+sub __get_config_fallback_warns {
+    my @warns;
+    local $SIG{__WARN__} = sub { push @warns, @_ };
+    $mod->new->get_config('mail-dmarc.ini');
+    ok( ( grep {/using bundled defaults/} @warns ),
+        "get_config warns when falling back to bundled defaults" );
+}
+
 sub __get_sharefile {
     # throws an exception until after 'make install' has been run
     my $r;
-    eval { $r = $base->get_sharefile('mail-dmarc.ini'); };
+    my $error = '';
+    try {
+        $r = $base->get_sharefile('mail-dmarc.ini');
+    }
+    catch ($e) {
+        $error = $e;
+    }
 
     SKIP: {
-        skip '"make install" not yet run', 1 if $@;
+        skip '"make install" not yet run', 1 if $error;
 
         ok($r, "get_sharefile: $r");
     };

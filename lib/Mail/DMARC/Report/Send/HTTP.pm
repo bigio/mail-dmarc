@@ -1,8 +1,9 @@
 package Mail::DMARC::Report::Send::HTTP;
 use strict;
 use warnings;
+use feature 'signatures';
 
-our $VERSION = '1.20260612';
+our $VERSION = '2.20260724';
 
 use Carp;
 
@@ -12,8 +13,7 @@ use Carp;
 
 use parent 'Mail::DMARC::Base';
 
-sub post {
-    my ( $self, $uri, $report, $gz ) = @_;
+sub post( $self, $uri, $report, $gz ) {
 
     carp "http send feature not complete!";
     return;
@@ -23,7 +23,7 @@ sub post {
     eval "require Net::HTTP" or return;
 
     my $ver = $Mail::DMARC::Base::VERSION;
-    my $s = Net::HTTP->new( Host => $uri->host ) or croak $@;
+    my $s   = Net::HTTP->new( Host => $uri->host ) or croak $@;
     $s->write_request(
         POST         => $uri->path,
         'User-Agent' => "Mail::DMARC/$ver"
@@ -34,7 +34,7 @@ sub post {
         my $buf;
         my $n = $s->read_entity_body( $buf, 1024 );
         croak "read failed: $!" unless defined $n;
-        last unless $n;
+        last                    unless $n;
         print $buf;
         return 1;
     }
@@ -53,7 +53,7 @@ Mail::DMARC::Report::Send::HTTP - utility methods to send reports by HTTP
 
 =head1 VERSION
 
-version 1.20260612
+version 2.20260724
 
 =head1 12.2.2. HTTP
 
@@ -95,4 +95,3 @@ This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-

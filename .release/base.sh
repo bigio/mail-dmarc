@@ -4,7 +4,8 @@ set -e
 
 get_version()
 {
-    echo "1.$(date '+%Y%m%d')"
+    major=$(sed -n "s/.*VERSION = '\([0-9][0-9]*\)\..*/\1/p" lib/Mail/DMARC.pm | head -1)
+    echo "${major}.$(date '+%Y%m%d')"
 }
 
 repo_is_clean()
@@ -34,8 +35,8 @@ assure_changes_has_entry()
 {
     THIS_VERSION=$(get_version)
 
-    if ! grep -q "$THIS_VERSION" Changes.md; then
-        echo "OOPS, Changes.md has no entry for version $THIS_VERSION"
+    if ! grep -q "$THIS_VERSION" CHANGELOG.md; then
+        echo "OOPS, CHANGELOG.md has no entry for version $THIS_VERSION"
         return 1
     fi
 
