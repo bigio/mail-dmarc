@@ -17,6 +17,11 @@ my %dns_responses;
     return $dns_responses{$domain}{$type} || 0;
 };
 
+# exists_in_dns()'s existence gate is exercised on its own in
+# t/04.PurePerl.t; here every subtest is testing post-existence DMARC
+# logic (policy/alignment/whitelisting), so just say "it exists".
+*Mail::DMARC::PurePerl::_dns_name_exists = sub { return 1; };
+
 # DMARCbis: discover_policy now uses tree_walk; mock it to read %dns_responses
 *Mail::DMARC::PurePerl::tree_walk = sub {
     my ($self, $from_dom) = @_;

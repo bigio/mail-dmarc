@@ -499,9 +499,9 @@ sub _psl_organizational_domain {
     return join '.', reverse( @labels[ 0 .. $greatest ] );
 }
 
-sub _subdomain_exists_in_dns {
+sub _dns_name_exists {
     my ( $self, $dom ) = @_;
-    # RFC 9989 4.7: a subdomain is non-existent only when DNS consistently
+    # RFC 9989 4.7/9.6: a name is non-existent only when DNS consistently
     # returns NXDOMAIN. NOERROR/NODATA means the name exists but lacks that
     # record type. Timeouts and other errors are treated conservatively as
     # existing.
@@ -513,6 +513,11 @@ sub _subdomain_exists_in_dns {
         $got_response = 1;
     }
     return $got_response ? 0 : 1;
+}
+
+sub _subdomain_exists_in_dns {
+    my ( $self, $dom ) = @_;
+    return $self->_dns_name_exists($dom);
 }
 
 sub exists_in_dns {
@@ -534,10 +539,7 @@ sub exists_in_dns {
     my $matched = 0;
     foreach (@todo) {
         last if $matched;
-        $matched++ and next if $self->has_dns_rr( 'MX',   $_ );
-        $matched++ and next if $self->has_dns_rr( 'NS',   $_ );
-        $matched++ and next if $self->has_dns_rr( 'A',    $_ );
-        $matched++ and next if $self->has_dns_rr( 'AAAA', $_ );
+        $matched = 1 if $self->_dns_name_exists($_);
     }
     if ( !$matched ) {
         $self->result->result('none');

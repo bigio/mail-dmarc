@@ -622,6 +622,9 @@ sub test_exists_in_dns {
         'tnpi.net'                 => 1,
         'fake.mail-dmarc.tnpi.net' => 1,    # organizational name exists
         'no-such-made-up-name-should-exist.com.uk.nonsense' => 0,
+        # TXT-only domain (no A/AAAA/MX/NS): NOERROR/NODATA means the name
+        # exists, it just doesn't publish those record types.
+        'txtonly.np.dmarctest.net' => 1,
     );
 
     foreach my $dom ( keys %tests ) {
